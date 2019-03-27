@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+}
+
+group 'mod.wurmunlimited.contracts.animals'
+version '0.3'
+def $shortName = 'animalcontracts'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+    provided.extendsFrom(implementation)
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+    test {
+        compileClasspath += configurations.provided
+    }
+}
+
+dependencies {
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    testCompile 'org.junit.platform:junit-platform-runner:1.1.0'
+    testCompile "org.mockito:mockito-inline:2.+"
+    testCompile project(':WurmTestingHelper')
+    provided fileTree(dir: 'E:/Steam/steamapps/common/Wurm Unlimited/WurmServerLauncher/', includes: ["modlauncher.jar", "javassist.jar", "server.jar"])
+    implementation project(':BMLBuilder')
+}
+
+jar {
+    doLast {
+        copy {
+            from jar
+            into 'E:/Steam/steamapps/common/Wurm Unlimited/WurmServerLauncher/mods/' + $shortName
+        }
+
+        copy {
+            from sourceSets.main.output.resourcesDir
+            into 'E:/Steam/steamapps/common/Wurm Unlimited/WurmServerLauncher/mods/'
+        }
+    }
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+
+    exclude "*.properties"
+    archiveName $shortName + '.jar'
+
+    manifest {
+        attributes('Implementation-Version': version)
+    }
+}
+
+task zip(type: Zip) {
+    into($shortName) {
+        from jar
+    }
+
+    archiveName = $shortName + '.zip'
+}
